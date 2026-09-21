@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="za.ac.taskflow.ApiTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-21T10:34:13" hostname="LabVM2049826" time="17.916">
+  <properties/>
+  <testcase name="retrofitPropagatesAuthenticationErrors" classname="za.ac.taskflow.ApiTest" time="17.865"/>
+  <testcase name="retrofitSendsBearerTokenAndReadsBoards" classname="za.ac.taskflow.ApiTest" time="0.051"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,62 @@
+Pushing outputs/TaskFlow-debug.apk
+
+Exception occurred while executing 'install':
+java.lang.NullPointerException: Attempt to invoke virtual method 'void android.content.pm.PackageManagerInternal.freeStorage(java.lang.String, long, int)' on a null object reference
+	at com.android.server.StorageManagerService.allocateBytes(StorageManagerService.java:4205)
+	at android.os.storage.StorageManager.allocateBytes(StorageManager.java:2321)
+	at android.os.storage.StorageManager.allocateBytes(StorageManager.java:2400)
+	at com.android.server.pm.PackageInstallerSession.doWriteInternal(PackageInstallerSession.java:1987)
+	at com.android.server.pm.PackageInstallerSession.write(PackageInstallerSession.java:1889)
+	at android.content.pm.PackageInstaller$Session.write(PackageInstaller.java:1619)
+	at com.android.server.pm.PackageManagerShellCommand.doWriteSplit(PackageManagerShellCommand.java:4218)
+	at com.android.server.pm.PackageManagerShellCommand.doWriteSplits(PackageManagerShellCommand.java:4167)
+	at com.android.server.pm.PackageManagerShellCommand.doRunInstall(PackageManagerShellCommand.java:1629)
+	at com.android.server.pm.PackageManagerShellCommand.runInstall(PackageManagerShellCommand.java:1561)
+	at com.android.server.pm.PackageManagerShellCommand.onCommand(PackageManagerShellCommand.java:245)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onShellCommand(PackageManagerService.java:6561)
+	at android.os.Binder.shellCommand(Binder.java:1230)
+	at android.os.Binder.onTransact(Binder.java:1043)
+	at android.content.pm.IPackageManager$Stub.onTransact(IPackageManager.java:4620)
+	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onTransact(PackageManagerService.java:6545)
+	at android.os.Binder.execTransactInternal(Binder.java:1505)
+	at android.os.Binder.execTransact(Binder.java:1444)
+
+Pushing outputs/TaskFlow/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+
+Exception occurred while executing 'install':
+java.lang.NullPointerException: Attempt to invoke virtual method 'void android.content.pm.PackageManagerInternal.freeStorage(java.lang.String, long, int)' on a null object reference
+	at com.android.server.StorageManagerService.allocateBytes(StorageManagerService.java:4205)
+	at android.os.storage.StorageManager.allocateBytes(StorageManager.java:2321)
+	at android.os.storage.StorageManager.allocateBytes(StorageManager.java:2400)
+	at com.android.server.pm.PackageInstallerSession.doWriteInternal(PackageInstallerSession.java:1987)
+	at com.android.server.pm.PackageInstallerSession.write(PackageInstallerSession.java:1889)
+	at android.content.pm.PackageInstaller$Session.write(PackageInstaller.java:1619)
+	at com.android.server.pm.PackageManagerShellCommand.doWriteSplit(PackageManagerShellCommand.java:4218)
+	at com.android.server.pm.PackageManagerShellCommand.doWriteSplits(PackageManagerShellCommand.java:4167)
+	at com.android.server.pm.PackageManagerShellCommand.doRunInstall(PackageManagerShellCommand.java:1629)
+	at com.android.server.pm.PackageManagerShellCommand.runInstall(PackageManagerShellCommand.java:1561)
+	at com.android.server.pm.PackageManagerShellCommand.onCommand(PackageManagerShellCommand.java:245)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onShellCommand(PackageManagerService.java:6561)
+	at android.os.Binder.shellCommand(Binder.java:1230)
+	at android.os.Binder.onTransact(Binder.java:1043)
+	at android.content.pm.IPackageManager$Stub.onTransact(IPackageManager.java:4620)
+	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onTransact(PackageManagerService.java:6545)
+	at android.os.Binder.execTransactInternal(Binder.java:1505)
+	at android.os.Binder.execTransact(Binder.java:1444)
+
+android.util.AndroidException: INSTRUMENTATION_FAILED: za.ac.taskflow.test/androidx.test.runner.AndroidJUnitRunner
+	at com.android.commands.am.Instrument.run(Instrument.java:543)
+	at com.android.commands.am.Am.runInstrument(Am.java:213)
+	at com.android.commands.am.Am.onRun(Am.java:85)
+	at com.android.internal.os.BaseCommand.run(BaseCommand.java:62)
+	at com.android.commands.am.Am.main(Am.java:54)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:369)
+INSTRUMENTATION_STATUS: Error=Unable to find instrumentation info for: ComponentInfo{za.ac.taskflow.test/androidx.test.runner.AndroidJUnitRunner}
+INSTRUMENTATION_STATUS: id=ActivityManagerService
+INSTRUMENTATION_STATUS_CODE: -1
+

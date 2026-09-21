@@ -13,9 +13,18 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_URL", "\"${providers.gradleProperty("TASKFLOW_API_URL").getOrElse("http://10.0.2.2:3000/")}\"")
+        resValue("string", "api_url", providers.gradleProperty("TASKFLOW_API_URL").getOrElse("http://10.0.2.2:3000/"))
     }
-    buildFeatures { compose = true; buildConfig = true }
+    buildFeatures { compose = true; buildConfig = false }
+    // Optional local debug key for restricted build environments. Never a release key.
+    providers.gradleProperty("TASKFLOW_DEBUG_KEYSTORE").orNull?.let { path ->
+        signingConfigs.getByName("debug") {
+            storeFile = file(path)
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     buildTypes { release { isMinifyEnabled = false } }

@@ -13,6 +13,7 @@ import java.io.IOException
 import java.net.URI
 
 class TaskFlowViewModel(application: Application) : AndroidViewModel(application) {
+    private val debugBuild = application.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
     private val store = SessionStore(application)
     private var token: String? = store.read()
     var endpoint by mutableStateOf(store.baseUrl); private set
@@ -55,9 +56,9 @@ class TaskFlowViewModel(application: Application) : AndroidViewModel(application
         val valid = try {
             val uri = URI(url)
             uri.host != null && uri.userInfo == null && uri.query == null && uri.fragment == null &&
-                (uri.scheme == "https" || (BuildConfig.DEBUG && uri.scheme == "http"))
+                (uri.scheme == "https" || (debugBuild && uri.scheme == "http"))
         } catch (_: Exception) { false }
-        if (!valid) { error = "Enter a valid ${if (BuildConfig.DEBUG) "HTTP or HTTPS" else "HTTPS"} server address."; return false }
+        if (!valid) { error = "Enter a valid ${if (debugBuild) "HTTP or HTTPS" else "HTTPS"} server address."; return false }
         clearSession(); endpoint = url; store.baseUrl = url; api = createApi(url) { token }; error = null
         return true
     }

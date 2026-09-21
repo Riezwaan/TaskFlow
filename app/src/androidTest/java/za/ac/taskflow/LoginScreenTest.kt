@@ -7,8 +7,8 @@ class LoginScreenTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     @Test fun invalidEmailShowsHelpfulErrorWithoutSendingRequest() {
         compose.onNodeWithText("Email address").performTextInput("not-an-email")
-        compose.onNodeWithText("Password",useUnmergedTree=true).performTextInput("validpassword")
+        compose.onNode(hasSetTextAction() and hasText("Password")).performTextInput("validpassword")
         compose.onNodeWithText("Sign in",substring=false).performScrollTo().performClick()
-        compose.onNodeWithText("Enter a valid email address.").assertIsDisplayed()
+        compose.onNodeWithText("Enter a valid email address.").performScrollTo().assertIsDisplayed()
     }
 }

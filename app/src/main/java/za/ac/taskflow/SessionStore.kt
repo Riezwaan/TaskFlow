@@ -13,8 +13,9 @@ import javax.crypto.spec.GCMParameterSpec
 /** The password is never saved. Session tokens are encrypted with a device Keystore key. */
 class SessionStore(context: Context) {
     private val prefs = context.getSharedPreferences("taskflow", Context.MODE_PRIVATE)
+    private val defaultUrl = context.getString(R.string.api_url)
     var baseUrl: String
-        get() = prefs.getString("url", BuildConfig.API_URL)!!
+        get() = prefs.getString("url", defaultUrl)!!
         set(value) { prefs.edit().putString("url",value).apply() }
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
