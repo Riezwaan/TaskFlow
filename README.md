@@ -9,7 +9,7 @@ TaskFlow turns student work into manageable cards that move through **To-do → 
 
 ## Submission status
 
-Source is published on GitHub. The API and PostgreSQL database were deployed on Render on 22 September 2026. Hosted registration, login, task creation (including a blank due date), completion rewards, and persisted settings passed API checks. **Physical-phone verification, the narrated video, and the final passing GitHub build remain to be completed.** The full rubric was not supplied; check any lecturer requirements beyond the two screenshots.
+Source is published on GitHub. The API and PostgreSQL database were deployed on Render on 22 September 2026. Hosted registration, login, task creation (including a blank due date), completion rewards, and persisted settings passed API checks. The student reports successful testing on a physical Android phone. All three GitHub Actions jobs (API, Android build/checks, and Android UI) passed in [run #2](https://github.com/Riezwaan/TaskFlow/actions/runs/35740202749). The demonstration video is linked below; its full assessment coverage has not been independently reviewed. The full rubric was not supplied; check any lecturer requirements beyond the two screenshots.
 
 ## Hosted API
 
@@ -20,7 +20,7 @@ For an existing installation, sign out and enter the API URL above in **Server c
 
 ## Demonstration video
 
-Not recorded yet. Add your actual unlisted video URL here after recording on your phone. Use [the recording guide](docs/DEMO_SCRIPT.md).
+[Watch the TaskFlow Part 2 demonstration](https://youtu.be/mKR7O_tKUn0).
 
 ## Features
 
@@ -115,4 +115,5 @@ Project code was generated with AI assistance, not represented as copied tutoria
 - Supplied TaskFlow Planning and Design Document — Part 1, ST10461820.
 
 Dependencies retain their respective licences. See AI disclosure for generated work.
+
 
