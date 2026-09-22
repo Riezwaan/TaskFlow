@@ -9,7 +9,14 @@ TaskFlow turns student work into manageable cards that move through **To-do → 
 
 ## Submission status
 
-Source, local Git history, automated tests, CI configuration and deployment setup are included. **GitHub publication, live hosting, physical-phone verification and a narrated video still require completion.** No account, hosted service or video has been fabricated. The full rubric was not supplied; check any lecturer requirements beyond the two screenshots.
+Source is published on GitHub. The API and PostgreSQL database were deployed on Render on 22 September 2026. Hosted registration, login, task creation (including a blank due date), completion rewards, and persisted settings passed API checks. **Physical-phone verification, the narrated video, and the final passing GitHub build remain to be completed.** The full rubric was not supplied; check any lecturer requirements beyond the two screenshots.
+
+## Hosted API
+
+API: https://taskflow-api-ov2b.onrender.com/
+Health check: https://taskflow-api-ov2b.onrender.com/health
+
+For an existing installation, sign out and enter the API URL above in **Server connection**. Create a new account: local accounts were not migrated. The free service can take about a minute to wake after inactivity. The free database expires on **22 October 2026**; arrange continued hosting if marking occurs later. This deployment used the public repository URL, so check/manual-deploy future code updates in Render.
 
 ## Demonstration video
 
@@ -108,3 +115,4 @@ Project code was generated with AI assistance, not represented as copied tutoria
 - Supplied TaskFlow Planning and Design Document — Part 1, ST10461820.
 
 Dependencies retain their respective licences. See AI disclosure for generated work.
+
