@@ -13,7 +13,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        resValue("string", "api_url", providers.gradleProperty("TASKFLOW_API_URL").getOrElse("http://10.0.2.2:3000/"))
+        resValue("string", "api_url", providers.gradleProperty("TASKFLOW_API_URL").getOrElse("https://taskflow-api-ov2b.onrender.com/"))
     }
     buildFeatures { compose = true; buildConfig = false }
     // Optional local debug key for restricted build environments. Never a release key.
@@ -47,3 +47,4 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
