@@ -1,5 +1,17 @@
 # Test and build evidence
 
+## Latest update — 22 September 2026
+
+The student reports that the app works after manual testing. This is user-reported verification, not an automated end-to-end pass. The API regression suite passed all 13 tests after fixing omitted optional due dates. Previously verified Kotlin tests add 6 passing tests. Hosted deployment, GitHub Actions and physical-phone video evidence remain pending.
+
+## Follow-up device check
+
+Android Studio completed sync/indexing. The emulator subsequently finished booting, installed TaskFlow successfully and displayed its sign-in screen. However, it then displayed both TaskFlow and Android System UI not-responding dialogs; a restart did not establish a reliable interactive session. The full user workflow is therefore **not verified**. The newly added opt-in WorkflowTest remains unexecuted; its compilation passed in the subsequent build (3m 43s), but the test has not been executed successfully. The existing 18 passing API/Kotlin tests are unaffected. Work was paused at the user's request to conserve usage.
+
+The project-local SDK path was restored to the prepared workspace SDK after Android Studio changed it to a location lacking the required Android 35 components.
+
+## Earlier checks
+
 Checks performed on 21 September 2026. Local verification does not prove a hosted deployment or physical-phone demonstration.
 
 | Check | Observed result |
@@ -50,3 +62,4 @@ The workspace used Gradle 8.11.1, Temurin JDK 17, Android SDK/Build Tools 35, a 
 - [ ] Capture actual screenshots and narrated phone video.
 
 Keep unexecuted checks unchecked. Run this checklist against the hosted service before submission.
+

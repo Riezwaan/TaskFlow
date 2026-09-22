@@ -42,6 +42,15 @@ test('tasks preserve fields and checklist; invalid dates are rejected',async()=>
  const rows=(await request(app).get(`/api/boards/${board.id}/tasks`).set(auth(alice))).body;
  assert.equal(rows[0].title,'Submit Part 2');
 });
+test('Android requests can omit an optional due date when creating and updating',async()=>{
+ const payload=draft(); delete payload.dueDate;
+ const created=(await request(app).post('/api/tasks').set(auth(alice)).send(payload).expect(201)).body;
+ assert.equal(created.dueDate,null);
+ await request(app).put(`/api/tasks/${created.id}`).set(auth(alice)).send(draft()).expect(200);
+ const updated=(await request(app).put(`/api/tasks/${created.id}`).set(auth(alice)).send(payload).expect(200)).body;
+ assert.equal(updated.dueDate,null);
+ await request(app).delete(`/api/tasks/${created.id}`).set(auth(alice)).expect(204);
+});
 test('another user cannot list, alter or delete private records',async()=>{
  bob=(await request(app).post('/api/auth/register').send({name:'Bob',email:'bob@example.com',password:'ExamplePass123!'})).body.token;
  assert.deepEqual((await request(app).get('/api/boards').set(auth(bob))).body,[]);
@@ -76,3 +85,4 @@ test('expired sessions and signed-out tokens cannot be reused',async()=>{
  await request(app).post('/api/auth/logout').set(auth(alice)).expect(204);
  await request(app).get('/api/me').set(auth(alice)).expect(401);
 });
+

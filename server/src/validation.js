@@ -7,6 +7,7 @@ export const settingsSchema = z.object({ name, theme: z.enum(['system','light','
 export const taskSchema = z.object({
   boardId: z.string().uuid(), title: z.string().trim().min(1).max(120), description: z.string().max(4000),
   status: z.enum(['TODO','DOING','DONE']), priority: z.enum(['LOW','MEDIUM','HIGH']),
-  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => { const d = new Date(s); return !isNaN(d) && d.toISOString().slice(0,10) === s; }).nullable(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => { const d = new Date(s); return !isNaN(d) && d.toISOString().slice(0,10) === s; }).nullable().default(null),
   checklist: z.array(z.object({ text: z.string().trim().min(1).max(160), done: z.boolean() })).max(30)
 });
+
