@@ -42,6 +42,15 @@ test('tasks preserve fields and checklist; invalid dates are rejected',async()=>
  const rows=(await request(app).get(`/api/boards/${board.id}/tasks`).set(auth(alice))).body;
  assert.equal(rows[0].title,'Submit Part 2');
 });
+test('offline task retries retain their client id without creating duplicates',async()=>{
+ const clientId='b6b9973c-f035-4e99-9d50-4d59c9f36130';
+ const first=(await request(app).post('/api/tasks').set(auth(alice)).send(draft({id:clientId,title:'Queued task'})).expect(201)).body;
+ const retry=(await request(app).post('/api/tasks').set(auth(alice)).send(draft({id:clientId,title:'Queued task updated'})).expect(201)).body;
+ assert.equal(first.id,clientId); assert.equal(retry.id,clientId); assert.equal(retry.title,'Queued task updated');
+ assert.equal((await db.query('SELECT count(*)::int AS count FROM tasks WHERE id=$1',[clientId])).rows[0].count,1);
+ const legacy=(await request(app).post('/api/tasks').set(auth(alice)).send(draft({id:''})).expect(201)).body;
+ await request(app).delete(`/api/tasks/${legacy.id}`).set(auth(alice)).expect(204);
+});
 test('Android requests can omit an optional due date when creating and updating',async()=>{
  const payload=draft(); delete payload.dueDate;
  const created=(await request(app).post('/api/tasks').set(auth(alice)).send(payload).expect(201)).body;
@@ -60,6 +69,21 @@ test('another user cannot list, alter or delete private records',async()=>{
  await request(app).post('/api/tasks').set(auth(bob)).send(draft()).expect(404);
  await request(app).put(`/api/tasks/${task.id}`).set(auth(bob)).send(draft()).expect(404);
  await request(app).delete(`/api/tasks/${task.id}`).set(auth(bob)).expect(404);
+});
+test('task image blobs are validated, private, readable and deletable',async()=>{
+ const png=Buffer.from([137,80,78,71,13,10,26,10,1,2,3]);
+ await request(app).post(`/api/tasks/${task.id}/attachments`).set(auth(alice)).set('Content-Type','image/png').send(Buffer.from('not an image')).expect(400);
+ const uploaded=await request(app).post(`/api/tasks/${task.id}/attachments`).set(auth(alice)).set('Content-Type','image/png').query({name:'proof.png'}).send(png).expect(201);
+ assert.equal(uploaded.body.filename,'proof.png'); assert.equal(uploaded.body.size,png.length);
+ const listed=await request(app).get(`/api/tasks/${task.id}/attachments`).set(auth(alice)).expect(200);
+ assert.equal(listed.body.length,1); assert.equal(listed.body[0].id,uploaded.body.id);
+ await request(app).get(`/api/tasks/${task.id}/attachments/${uploaded.body.id}`).set(auth(bob)).expect(404);
+ const downloaded=await request(app).get(`/api/tasks/${task.id}/attachments/${uploaded.body.id}`).set(auth(alice)).buffer(true).parse((response,done)=>{
+  const chunks=[]; response.on('data',chunk=>chunks.push(chunk)); response.on('end',()=>done(null,Buffer.concat(chunks)));
+ }).expect(200);
+ assert.deepEqual(downloaded.body,png);
+ await request(app).delete(`/api/tasks/${task.id}/attachments/${uploaded.body.id}`).set(auth(alice)).expect(204);
+ assert.deepEqual((await request(app).get(`/api/tasks/${task.id}/attachments`).set(auth(alice))).body,[]);
 });
 test('completion awards exactly once despite repeated updates',async()=>{
  for(const status of ['DOING','DONE','DONE','TODO','DONE']) await request(app).put(`/api/tasks/${task.id}`).set(auth(alice)).send(draft({status})).expect(200);

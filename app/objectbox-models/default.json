@@ -1,0 +1,101 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:6597911690357346533",
+      "lastPropertyId": "7:7852743348759579594",
+      "name": "CachedWorkspace",
+      "properties": [
+        {
+          "id": "1:8355833928195079602",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1196159531106339150",
+          "name": "ownerId",
+          "type": 9
+        },
+        {
+          "id": "3:7301032665071429870",
+          "name": "userJson",
+          "type": 9
+        },
+        {
+          "id": "4:6502343181033974038",
+          "name": "boardsJson",
+          "type": 9
+        },
+        {
+          "id": "5:4398524095521713427",
+          "name": "tasksJson",
+          "type": 9
+        },
+        {
+          "id": "6:3765676875167593516",
+          "name": "statsJson",
+          "type": 9
+        },
+        {
+          "id": "7:7852743348759579594",
+          "name": "selectedBoardId",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:6254994345718531693",
+      "lastPropertyId": "6:3400355660969589064",
+      "name": "PendingTaskMutation",
+      "properties": [
+        {
+          "id": "1:6289402114662814758",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8431651017150910753",
+          "name": "ownerId",
+          "type": 9
+        },
+        {
+          "id": "3:2874237254954610816",
+          "name": "taskId",
+          "type": 9
+        },
+        {
+          "id": "4:2590815043458116496",
+          "name": "action",
+          "type": 9
+        },
+        {
+          "id": "5:1656097118420876952",
+          "name": "taskJson",
+          "type": 9
+        },
+        {
+          "id": "6:3400355660969589064",
+          "name": "createdAt",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:6254994345718531693",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

@@ -4,6 +4,8 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import java.util.concurrent.TimeUnit
 
 interface TaskFlowApi {
@@ -20,6 +22,10 @@ interface TaskFlowApi {
     @POST("api/tasks") suspend fun createTask(@Body body: Task): Task
     @PUT("api/tasks/{id}") suspend fun updateTask(@Path("id") id: String, @Body body: Task): Task
     @DELETE("api/tasks/{id}") suspend fun deleteTask(@Path("id") id: String)
+    @GET("api/tasks/{id}/attachments") suspend fun attachments(@Path("id") id: String): List<TaskAttachment>
+    @POST("api/tasks/{id}/attachments") suspend fun uploadAttachment(@Path("id") id: String, @Query("name") filename: String, @Body body: RequestBody): TaskAttachment
+    @GET("api/tasks/{taskId}/attachments/{attachmentId}") suspend fun downloadAttachment(@Path("taskId") taskId: String, @Path("attachmentId") attachmentId: String): ResponseBody
+    @DELETE("api/tasks/{taskId}/attachments/{attachmentId}") suspend fun deleteAttachment(@Path("taskId") taskId: String, @Path("attachmentId") attachmentId: String)
     @GET("api/stats") suspend fun stats(): Stats
 }
 

@@ -1,5 +1,11 @@
 # Test and build evidence
 
+## Final assessment update — 5 November 2026
+
+The final source update was built locally with Android SDK 36, AGP 8.10.1 and Gradle 8.11.1. `testDebugUnitTest`, `assembleDebug`, and `lintDebug` completed successfully. The 15-test API suite passed, including attachment validation/access control and idempotent offline create retries. This verifies compilation and automated tests only; it does not verify a physical phone, hosted API, or Play Console upload. Android lint completed with no errors (see generated report for warnings).
+
+The APK is `app/build/outputs/apk/debug/app-debug.apk`. It is a debug APK, not a release-signed Play Store artifact.
+
 ## Latest update — 22 September 2026
 
 The student reports that the app works after manual testing. This is user-reported verification, not an automated end-to-end pass. The API regression suite passed all 13 tests after fixing omitted optional due dates. Previously verified Kotlin tests add 6 passing tests. Hosted deployment, GitHub Actions and physical-phone video evidence remain pending.

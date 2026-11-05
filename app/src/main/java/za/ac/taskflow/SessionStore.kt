@@ -17,6 +17,9 @@ class SessionStore(context: Context) {
     var baseUrl: String
         get() = prefs.getString("url", defaultUrl)!!
         set(value) { prefs.edit().putString("url",value).apply() }
+    var cachedOwnerId: String?
+        get() = prefs.getString("cached_owner_id", null)
+        set(value) { prefs.edit().putString("cached_owner_id", value).apply() }
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey("taskflow-session", null) as? SecretKey)?.let { return it }

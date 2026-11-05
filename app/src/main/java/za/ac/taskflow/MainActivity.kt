@@ -1,6 +1,14 @@
 package za.ac.taskflow
 
 import android.os.Bundle
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.Network
+import android.os.Handler
+import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -22,6 +31,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,7 +50,33 @@ class MainActivity : ComponentActivity() {
 }
 private val Leaf = Color(0xFF345941)
 private val Cream = Color(0xFFF7F6F0)
+private fun decodeImagePreview(bytes:ByteArray):android.graphics.Bitmap? {
+    return try {
+        val options=BitmapFactory.Options().apply { inJustDecodeBounds=true }
+        BitmapFactory.decodeByteArray(bytes,0,bytes.size,options)
+        if(options.outWidth<=0 || options.outHeight<=0) null else {
+            var sample=1
+            while(sample<(1 shl 20) && maxOf(options.outWidth,options.outHeight)/sample>1200) sample*=2
+            options.inJustDecodeBounds=false
+            options.inSampleSize=sample
+            BitmapFactory.decodeByteArray(bytes,0,bytes.size,options)
+        }
+    } catch (_:Exception) { null }
+}
 @Composable fun TaskFlowApp(vm: TaskFlowViewModel = viewModel()) {
+    val appContext=LocalContext.current.applicationContext
+    DisposableEffect(appContext,vm) {
+        val connectivity=appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val mainHandler=Handler(Looper.getMainLooper())
+        val callback=object:ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network:Network) {
+                mainHandler.post { if(vm.hasSession && vm.offlineSnapshot && !vm.busy) vm.refresh() }
+            }
+        }
+        var registered=false
+        try { connectivity.registerDefaultNetworkCallback(callback); registered=true } catch (_:Exception) { }
+        onDispose { if(registered) try { connectivity.unregisterNetworkCallback(callback) } catch (_:Exception) { } }
+    }
     val dark = when(vm.user?.theme) { "dark" -> true; "light" -> false; else -> isSystemInDarkTheme() }
     val colors = if(dark) darkColorScheme(primary=Color(0xFFB4D0A6),background=Color(0xFF171D18),surface=Color(0xFF202721))
         else lightColorScheme(primary=Leaf,secondary=Color(0xFF7B6C45),background=Cream,surface=Color.White,surfaceVariant=Color(0xFFE8EBDC))
@@ -119,6 +155,10 @@ private val Cream = Color(0xFFF7F6F0)
                 IconButton(onClick=vm::refresh,enabled=!vm.busy) {Icon(Icons.Outlined.Refresh,"Refresh from server")}
             }
             if(vm.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if(vm.offlineSnapshot) Row(Modifier.fillMaxWidth().padding(bottom=8.dp),verticalAlignment=Alignment.CenterVertically) {
+                Text(if(vm.pendingOfflineChanges>0) "Offline · ${vm.pendingOfflineChanges} change(s) waiting to sync." else "Offline view · Showing the last saved workspace.",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.bodySmall,modifier=Modifier.weight(1f))
+                TextButton(onClick=vm::refresh,enabled=!vm.busy) { Text("Sync now") }
+            }
             ErrorNotice(vm)
             if(vm.user==null) {
                 Spacer(Modifier.height(30.dp));Text("Loading your workspace…")
@@ -266,6 +306,9 @@ private val Cream = Color(0xFFF7F6F0)
 }
 @Composable private fun TaskDetails(vm:TaskFlowViewModel,task:Task,onClose:()->Unit,onEdit:(Task)->Unit) {
     var deleting by remember {mutableStateOf(false)}
+    var preview by remember(task.id) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val picker=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> if(uri!=null) vm.uploadImage(task.id,uri) }
+    LaunchedEffect(task.id) { vm.loadAttachments(task.id) }
     AlertDialog(onDismissRequest={if(!vm.busy)onClose()},title={Text(if(deleting) "Delete task?" else task.title)},text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         ErrorNotice(vm)
         if(deleting) Text("This permanently removes the task. Earned rewards remain.") else {
@@ -276,6 +319,18 @@ private val Cream = Color(0xFFF7F6F0)
                 Checkbox(item.done,{done -> vm.saveTask(task.copy(checklist=task.checklist.mapIndexed {i,c -> if(i==index)c.copy(done=done) else c})) {}},enabled=!vm.busy)
                 Text(item.text)
             } }
+            HorizontalDivider()
+            Text("Task images",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.Bold)
+            Text("Images are stored with your TaskFlow account. JPEG, PNG or WebP, up to 5 MB each.",style=MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick={picker.launch("image/*")},enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) { Icon(Icons.Outlined.AddPhotoAlternate,null);Spacer(Modifier.width(8.dp));Text("Add image") }
+            vm.attachments.forEach { attachment ->
+                Row(verticalAlignment=Alignment.CenterVertically) {
+                    Text(attachment.filename,Modifier.weight(1f),maxLines=1)
+                    TextButton(onClick={vm.readImage(task.id,attachment.id) { bytes -> preview=decodeImagePreview(bytes) }},enabled=!vm.busy) { Text("View") }
+                    IconButton(onClick={vm.deleteImage(task.id,attachment.id)},enabled=!vm.busy) { Icon(Icons.Outlined.Delete,"Delete image") }
+                }
+            }
+            preview?.let { Image(it.asImageBitmap(),contentDescription="Task attachment preview",modifier=Modifier.fillMaxWidth().heightIn(max=220.dp)) }
             Text("First completion earns 10 points.",style=MaterialTheme.typography.bodySmall)
             Choice("Move to",listOf("TODO","DOING","DONE"),task.status) {if(!vm.busy)vm.saveTask(task.copy(status=it)) {}}
             TextButton(onClick={deleting=true},enabled=!vm.busy) {Text("Delete task",color=MaterialTheme.colorScheme.error)}
@@ -315,7 +370,7 @@ private val Cream = Color(0xFFF7F6F0)
                 }
             } }
         }
-        Text("These reminders appear inside the app. Push notifications are planned for the final PoE.",style=MaterialTheme.typography.bodySmall)
+        Text("These due-date reminders appear inside the app. They do not send push notifications.",style=MaterialTheme.typography.bodySmall)
     }
 }
 @Composable private fun SettingsScreen(vm:TaskFlowViewModel) {
@@ -336,8 +391,8 @@ private val Cream = Color(0xFFF7F6F0)
         Button(onClick={saved=true;vm.saveSettings(name,theme,reminders,priority)},enabled=!vm.busy && changed,modifier=Modifier.fillMaxWidth()) {Text("Save preferences")}
         if(saved && !vm.busy && !changed && vm.error==null) Text("Preferences saved.",color=MaterialTheme.colorScheme.primary)
         HorizontalDivider()
-        Text("TaskFlow · Part 2",fontWeight=FontWeight.Bold)
-        Text("Language: English. Additional languages, Google sign-in, offline sync and push notifications are reserved for the final PoE.",style=MaterialTheme.typography.bodySmall)
+        Text("TaskFlow · Final assessment build",fontWeight=FontWeight.Bold)
+        Text("English interface. ObjectBox keeps a local workspace cache and syncs queued task changes when you reconnect. Images are stored with tasks in the TaskFlow database.",style=MaterialTheme.typography.bodySmall)
         OutlinedButton(onClick=vm::signOut,enabled=!vm.busy,modifier=Modifier.fillMaxWidth()) {Text("Sign out")}
     }
 }

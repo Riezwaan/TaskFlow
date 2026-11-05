@@ -20,6 +20,14 @@ CREATE TABLE IF NOT EXISTS tasks (
  due_date DATE, checklist JSONB NOT NULL DEFAULT '[]',
  created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Task images are stored as binary blobs in the existing PostgreSQL database.
+CREATE TABLE IF NOT EXISTS task_attachments (
+ id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+ user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ filename TEXT NOT NULL, content_type TEXT NOT NULL,
+ data BYTEA NOT NULL, byte_size INTEGER NOT NULL CHECK (byte_size BETWEEN 1 AND 5242880),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- A unique task id makes rewards idempotent when cards are reopened and completed again.
 CREATE TABLE IF NOT EXISTS completions (
  task_id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -27,4 +35,5 @@ CREATE TABLE IF NOT EXISTS completions (
 );
 CREATE INDEX IF NOT EXISTS boards_owner ON boards(user_id);
 CREATE INDEX IF NOT EXISTS tasks_board ON tasks(board_id);
+CREATE INDEX IF NOT EXISTS task_attachments_owner ON task_attachments(user_id,task_id);
 CREATE INDEX IF NOT EXISTS completions_owner ON completions(user_id);

@@ -2,16 +2,18 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.kapt")
+    id("io.objectbox")
 }
 android {
     namespace = "za.ac.taskflow"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "za.ac.taskflow"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "2.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "api_url", providers.gradleProperty("TASKFLOW_API_URL").getOrElse("https://taskflow-api-ov2b.onrender.com/"))
     }
@@ -25,9 +27,21 @@ android {
             keyPassword = "android"
         }
     }
+    val releaseStorePath = providers.gradleProperty("TASKFLOW_RELEASE_STORE_FILE").orNull ?: System.getenv("TASKFLOW_RELEASE_STORE_FILE")
+    val releaseStorePassword = providers.gradleProperty("TASKFLOW_RELEASE_STORE_PASSWORD").orNull ?: System.getenv("TASKFLOW_RELEASE_STORE_PASSWORD")
+    val releaseKeyAlias = providers.gradleProperty("TASKFLOW_RELEASE_KEY_ALIAS").orNull ?: System.getenv("TASKFLOW_RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = providers.gradleProperty("TASKFLOW_RELEASE_KEY_PASSWORD").orNull ?: System.getenv("TASKFLOW_RELEASE_KEY_PASSWORD")
+    if (listOf(releaseStorePath,releaseStorePassword,releaseKeyAlias,releaseKeyPassword).all { !it.isNullOrBlank() }) {
+        signingConfigs.create("release") {
+            storeFile = file(releaseStorePath!!)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
-    buildTypes { release { isMinifyEnabled = false } }
+    buildTypes { release { isMinifyEnabled = false; signingConfig = signingConfigs.findByName("release") } }
 }
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2025.04.01"))

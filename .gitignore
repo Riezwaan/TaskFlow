@@ -9,4 +9,5 @@ node_modules/
 *.jks
 server/data/
 *.log
+app/objectbox-models/*.bak
 .kotlin/

@@ -11,6 +11,7 @@ data class ChecklistItem(val text: String, val done: Boolean = false)
 data class Task(val id: String = "", val boardId: String, val title: String, val description: String = "",
     val status: String = "TODO", val priority: String = "MEDIUM", val dueDate: String? = null,
     val checklist: List<ChecklistItem> = emptyList(), val createdAt: String = "", val updatedAt: String = "")
+data class TaskAttachment(val id: String, val taskId: String, val filename: String, val contentType: String, val size: Int, val createdAt: String)
 data class Stats(val completed: Int = 0, val points: Int = 0, val streak: Int = 0, val badges: List<String> = emptyList())
 data class SettingsRequest(val name: String, val theme: String, val reminders: Boolean, val defaultPriority: String)
 

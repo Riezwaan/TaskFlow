@@ -84,10 +84,13 @@ export function createApp(db, { logging = true, limits = true } = {}) {
   const saveTask = async (req,res,creating) => {
     const v = taskSchema.parse(req.body);
     await ownBoard(v.boardId,req.user.id);
-    const id = creating ? randomUUID() : req.params.id;
+    const id = creating ? (v.id || randomUUID()) : req.params.id;
     const args = [id,v.boardId,v.title,v.description,v.status,v.priority,v.dueDate,JSON.stringify(v.checklist),req.user.id];
     const mutation = creating
-      ? 'INSERT INTO tasks(id,board_id,title,description,status,priority,due_date,checklist) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb) RETURNING *'
+      ? `INSERT INTO tasks(id,board_id,title,description,status,priority,due_date,checklist) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)
+        ON CONFLICT(id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,status=EXCLUDED.status,
+        priority=EXCLUDED.priority,due_date=EXCLUDED.due_date,checklist=EXCLUDED.checklist,updated_at=now()
+        WHERE tasks.board_id=EXCLUDED.board_id RETURNING *`
       : 'UPDATE tasks SET title=$3,description=$4,status=$5,priority=$6,due_date=$7,checklist=$8::jsonb,updated_at=now() WHERE id=$1 AND board_id=$2 RETURNING *';
     const r = await db.query(`WITH saved AS (${mutation}), reward AS (
       INSERT INTO completions(task_id,user_id) SELECT id,$9 FROM saved WHERE status='DONE' ON CONFLICT(task_id) DO NOTHING
@@ -100,6 +103,39 @@ export function createApp(db, { logging = true, limits = true } = {}) {
   app.delete('/api/tasks/:id', async (req,res) => {
     const r = await db.query('DELETE FROM tasks WHERE id=$1 AND board_id IN (SELECT id FROM boards WHERE user_id=$2) RETURNING id',[req.params.id,req.user.id]);
     if (!r.rows.length) throw fail(404,'Task not found.'); res.status(204).end();
+  });
+  const ownTask = async (taskId,userId) => {
+    const r = await db.query('SELECT t.id FROM tasks t JOIN boards b ON b.id=t.board_id WHERE t.id=$1 AND b.user_id=$2',[taskId,userId]);
+    if (!r.rows.length) throw fail(404,'Task not found.');
+  };
+  const imageTypes = new Set(['image/jpeg','image/png','image/webp']);
+  const matchesImageType = (bytes,type) => type==='image/jpeg' ? bytes.length>=3 && bytes[0]===0xff && bytes[1]===0xd8 && bytes[2]===0xff
+    : type==='image/png' ? bytes.length>=8 && Buffer.from(bytes.subarray(0,8)).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+    : type==='image/webp' ? bytes.length>=12 && bytes.toString('ascii',0,4)==='RIFF' && bytes.toString('ascii',8,12)==='WEBP' : false;
+  const attachmentView = a => ({id:a.id,taskId:a.task_id,filename:a.filename,contentType:a.content_type,size:a.byte_size,createdAt:a.created_at});
+  app.get('/api/tasks/:id/attachments', async (req,res) => {
+    await ownTask(req.params.id,req.user.id);
+    const rows = await db.query('SELECT id,task_id,filename,content_type,byte_size,created_at FROM task_attachments WHERE task_id=$1 AND user_id=$2 ORDER BY created_at,id',[req.params.id,req.user.id]);
+    res.json(rows.rows.map(attachmentView));
+  });
+  app.post('/api/tasks/:id/attachments', express.raw({type:[...imageTypes],limit:'5mb'}), async (req,res) => {
+    await ownTask(req.params.id,req.user.id);
+    if (!imageTypes.has(req.get('content-type')) || !Buffer.isBuffer(req.body) || !matchesImageType(req.body,req.get('content-type'))) throw fail(400,'Choose a valid JPEG, PNG or WebP image.');
+    const name = String(req.query.name || 'task-image').replace(/[\\/\r\n\0]/g,'_').trim().slice(0,120) || 'task-image';
+    const id=randomUUID();
+    const r=await db.query('INSERT INTO task_attachments(id,task_id,user_id,filename,content_type,data,byte_size) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id,task_id,filename,content_type,byte_size,created_at',[id,req.params.id,req.user.id,name,req.get('content-type'),req.body,req.body.length]);
+    res.status(201).json(attachmentView(r.rows[0]));
+  });
+  app.get('/api/tasks/:taskId/attachments/:attachmentId', async (req,res) => {
+    await ownTask(req.params.taskId,req.user.id);
+    const a=(await db.query('SELECT filename,content_type,data FROM task_attachments WHERE id=$1 AND task_id=$2 AND user_id=$3',[req.params.attachmentId,req.params.taskId,req.user.id])).rows[0];
+    if(!a) throw fail(404,'Attachment not found.');
+    res.type(a.content_type).set('Content-Disposition',`inline; filename="${a.filename.replace(/["\\\r\n]/g,'_')}"`).send(Buffer.from(a.data));
+  });
+  app.delete('/api/tasks/:taskId/attachments/:attachmentId', async (req,res) => {
+    await ownTask(req.params.taskId,req.user.id);
+    const r=await db.query('DELETE FROM task_attachments WHERE id=$1 AND task_id=$2 AND user_id=$3 RETURNING id',[req.params.attachmentId,req.params.taskId,req.user.id]);
+    if(!r.rows.length) throw fail(404,'Attachment not found.'); res.status(204).end();
   });
   app.get('/api/stats', async (req,res) => {
     const rows = (await db.query('SELECT completed_on,points FROM completions WHERE user_id=$1 ORDER BY completed_on DESC',[req.user.id])).rows;
